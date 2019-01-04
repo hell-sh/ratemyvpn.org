@@ -63,7 +63,7 @@ collectInfo=()=>{
 							xhr.addEventListener("progress",event=>{
 								if(startTime==null)
 								{
-									startTime=(new Date()).getTime()
+									startTime=(new Date()).getTime();
 								}
 								speed[part]=((event.loaded*8)/(((new Date()).getTime()-startTime)/1000));
 								$("#speedtest-speed").text((speed[part]/1000000).toFixed(2));
