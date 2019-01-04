@@ -33,7 +33,7 @@
 					For the first part of the test, information about your regular connection will be collected, which will make rating your VPN so much easier for you and me.<br>
 					No collected information will leave your browser.
 				</p>
-				<p><button onclick="collectInfo()" class="uk-button uk-button-primary">I'm using my regular internet connection.</button></p>
+				<p><button onclick="collectInfo()" class="uk-button uk-button-primary">I'm using my regular internet connection</button></p>
 			</div>
 			<div id="connect-prompt" class="uk-hidden">
 				<h1>Please connect to your VPN.</h1>
@@ -41,7 +41,7 @@
 					Now, I will collect information about your tunneled connection and compare it to the information gathered about your regular collection.<br>
 					All collected information will stay in your browser.
 				</p>
-				<p><button onclick="collectInfo()" class="uk-button uk-button-primary">I'm using a VPN.</button></p>
+				<p><button onclick="collectInfo()" class="uk-button uk-button-primary">I'm using a VPN</button></p>
 			</div>
 			<div id="collecting-info" class="uk-hidden">
 				<h1>Gathering privacy-related information...</h1>
@@ -60,10 +60,13 @@
 				<h1>The Results Are In!</h1>
 				<p>RateMyVPN.org gives your VPN a rating of <b id="results-points"></b> points.</p>
 				<div uk-grid class="uk-child-width-1-2@m uk-grid-match" id="results-grid"></div>
-				<p><button data-target="connect-prompt" class="uk-button uk-button-default">Test another VPN.</button></p>
+				<p>
+					<button data-target="connect-prompt" class="uk-button uk-button-default">Test another VPN</button>
+					<a href="https://github.com/hell-sh/ratemyvpn.org/issues/new" target="_blank" class="uk-button uk-button-default">Report an issue</a>
+				</p>
 			</div>
 			<hr>
-			<p>Copyright (c) 2019, <a href="https://hell.sh" target="_blank">Hell.sh</a>, All rights reserved &middot; <a href="https://hell.sh/privacy" target="_blank">Privacy Policy</a></p>
+			<p>Copyright (c) 2019, <a href="https://hell.sh" target="_blank">Hell.sh</a> &middot; <a href="https://hell.sh/privacy" target="_blank">Privacy Policy</a> &middot; Rate My VPN is <a href="https://github.com/hell-sh/ratemyvpn.org" target="_blank">open-source</a>.</p>
 		</div>
 	</div>
 	<script src="https://cdn.hell.sh/jquery/3.3.1/core.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>

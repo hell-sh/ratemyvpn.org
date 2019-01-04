@@ -12,36 +12,22 @@ setShown=target=>{
 		eval(t.attr("data-onshow"));
 	}
 },
-startSpeedtest=()=>{
-	setShown("speedtest");
-	var startTime;
-	$("#speedtest-progress").val(0);
-	return new Promise((resolve,reject)=>{
-		$.ajax({
-			type: "GET",
-			url: "http://ratemyvpn.org/speedtest.png",
-			cache: false,
-			xhr: ()=>{
-				var xhr = new XMLHttpRequest();
-				xhr.addEventListener("progress",event=>{
-					if(startTime==null)
-					{
-						startTime=(new Date()).getTime()
-					}
-					speed[part]=((event.loaded*8)/(((new Date()).getTime()-startTime)/1000));
-					$("#speedtest-speed").text((speed[part]/1000000).toFixed(2));
-					$("#speedtest-progress").val(event.loaded/event.total);
-				});
-				return xhr;
-			}
-		}).always(()=>resolve());
-	});
+setFailed=()=>{
+	if(part == 0)
+	{
+		setShown("disconnect-prompt");
+	}
+	else
+	{
+		setShown("connect-prompt");
+	}
+	UIkit.notification({status: "danger", message: "An error occured. Please try again." });
 },
 collectInfo=()=>{
 	setShown("collecting-info");
 	$("#info-progress").val(0);
 	dns[part]=[];
-	var sent = 0;
+	var sent=0,failed=0;
 	for(var i = 0; i < 100; i++)
 	{
 		var token = "";
@@ -58,136 +44,166 @@ collectInfo=()=>{
 			{
 				dns[part].push(data);
 			}
+		}).fail(()=>{
+			if(++failed == 20)
+			{
+				sent = -1;
+				setFailed();
+			}
 		}).always(()=>{
 			$("#info-progress").val(++sent / 102);
 			if(sent == 100)
 			{
-				let continueWithSpeedtest=()=>startSpeedtest().then(()=>{
-					if(part == 0)
+				let continueWithSpeedtest=()=>{
+					setShown("speedtest");
+					var startTime;
+					$("#speedtest-progress").val(0);
+					$.ajax({
+						type: "GET",
+						url: "http://ratemyvpn.org/speedtest.png",
+						cache: false,
+						xhr: ()=>{
+							var xhr = new XMLHttpRequest();
+							xhr.addEventListener("progress",event=>{
+								if(startTime==null)
+								{
+									startTime=(new Date()).getTime()
+								}
+								speed[part]=((event.loaded*8)/(((new Date()).getTime()-startTime)/1000));
+								$("#speedtest-speed").text((speed[part]/1000000).toFixed(2));
+								$("#speedtest-progress").val(event.loaded/event.total);
+							});
+							return xhr;
+						}
+					}).done(()=>{
+						if(part == 0)
+						{
+							part = 1;
+							setShown("connect-prompt");
+						}
+						else
+						{
+							generateResults();
+						}
+					}).fail(setFailed);
+				},
+				continueWithIpv6=()=>{
+					$("#info-progress").val(101 / 102);
+					if(part == 1 && ipv6 == null)
 					{
-						part = 1;
-						setShown("connect-prompt");
+						results[0].t -= 2;
+						results[0].n.push("You don't seem to get IPv6 from your ISP, so your VPN wasn't tested in this regard.");
+						continueWithSpeedtest();
 					}
 					else
 					{
-						generateResults();
-					}
-				}),
-				continueWithIpv6=()=>{
-					$("#info-progress").val(101 / 102);
-					$.ajax("https://ipv6.apimon.de/").done(i=>{
-						if(part == 1)
-						{
-							if(ipv6 != i)
+						$.ajax("https://ipv6.apimon.de/").done(i=>{
+							if(part == 1)
 							{
-								results[0].p += 2;
+								if(ipv6 != i)
+								{
+									results[0].p += 2;
+								}
+								else
+								{
+									results[0].n.push("Your IPv6 address was not hidden.");
+								}
 							}
 							else
 							{
-								results[0].n.push("Your IPv6 address was not hidden.");
+								ipv6 = i;
 							}
-						}
-						else
-						{
-							ipv6 = i;
-						}
-						continueWithSpeedtest();
-					}).fail(()=>$.ajax("http://[2a01:4f8:1c1c:a436::1]/").done(i=>{
-						if(part == 1)
-						{
-							if(ipv6 != i)
+							continueWithSpeedtest();
+						}).fail(()=>$.ajax("http://[2a01:4f8:1c1c:a436::1]/").done(i=>{
+							if(part == 1)
 							{
-								results[0].p += 1;
+								if(ipv6 != i)
+								{
+									results[0].p += 1;
+								}
+								else
+								{
+									results[0].n.push("Your IPv6 address not hidden, but AAAA records are not resolved.");
+								}
 							}
 							else
 							{
-								results[0].n.push("Your IPv6 address not hidden, but AAAA records are not resolved.");
+								ipv6 = i;
 							}
-						}
-						else
-						{
-							ipv6 = i;
-						}
-						continueWithSpeedtest();
-					}).fail(()=>{
-						if(part == 1)
-						{
-							if(ipv6 == null)
-							{
-								results[0].p += 2;
-								results[0].n.push("You don't seem to get IPv6 from your ISP, so your VPN couldn't be properly tested.");
-							}
-							else
+							continueWithSpeedtest();
+						}).fail(()=>{
+							if(part == 1)
 							{
 								results[0].p += 1;
 								results[0].n.push("IPv6 connections are completely denied. This is good for your privacy, but bad for your internet experience.");
 							}
-						}
-						else
-						{
-							ipv6 = null;
-						}
-						continueWithSpeedtest();
-					}));
+							else
+							{
+								ipv6 = null;
+							}
+							continueWithSpeedtest();
+						}));
+					}
 				};
 				if(part == 1)
 				{
 					results={0:{p:0,t:7,n:[]}};
 				}
-				$.ajax("https://ipv4.apimon.de/").done(i=>{
-					if(part == 1)
-					{
-						if(ipv4 != i)
-						{
-							results[0].p += 2;
-						}
-						else
-						{
-							results[0].n.push("Your IPv4 address was not hidden.");
-						}
-					}
-					else
-					{
-						ipv4 = i;
-					}
+				if(part == 1 && ipv4 == null)
+				{
+					results[0].t -= 2;
+					results[0].n.push("You don't seem to get IPv4 from your ISP, so your VPN wasn't tested in this regard.");
 					continueWithIpv6();
-				}).fail(()=>$.ajax("http://159.69.210.10/").done(i=>{
-					if(part == 1)
-					{
-						if(ipv4 != i)
+				}
+				else
+				{
+					$.ajax("https://ipv4.apimon.de/").done(i=>{
+						if(part == 1)
 						{
-							results[0].p += 1;
+							if(ipv4 != i)
+							{
+								results[0].p += 2;
+							}
+							else
+							{
+								results[0].n.push("Your IPv4 address was not hidden.");
+							}
 						}
 						else
 						{
-							results[0].n.push("Your IPv4 address was not hidden, but A records are not resolved.");
+							ipv4 = i;
 						}
-					}
-					else
-					{
-						ipv4 = i;
-					}
-					continueWithIpv6();
-				}).fail(()=>{
-					if(part == 1)
-					{
-						if(ipv4 == null)
+						continueWithIpv6();
+					}).fail(()=>$.ajax("http://159.69.210.10/").done(i=>{
+						if(part == 1)
 						{
-							results[0].p += 2;
-							results[0].n.push("You don't seem to get IPv4 from your ISP, so your VPN couldn't be properly tested.");
+							if(ipv4 != i)
+							{
+								results[0].p += 1;
+							}
+							else
+							{
+								results[0].n.push("Your IPv4 address was not hidden, but A records are not resolved.");
+							}
 						}
 						else
+						{
+							ipv4 = i;
+						}
+						continueWithIpv6();
+					}).fail(()=>{
+						if(part == 1)
 						{
 							results[0].p += 1;
 							results[0].n.push("IPv4 connections are completely denied. This is good for your privacy, but bad for your internet experience.");
 						}
-					}
-					else
-					{
-						ipv4 = null;
-					}
-					continueWithIpv6();
-				}));
+						else
+						{
+							ipv4 = null;
+						}
+						continueWithIpv6();
+					}));
+				}
 			}
 		});
 	}
@@ -259,28 +275,23 @@ generateResults=()=>{
 		{
 			dnsreq++;
 			$.ajax("https://apimon.de/geoip/" + i).done(data=>{
-				var isp = data.isp;
-				if(!isp)
+				if(dnsleaks.indexOf(data.as_number) == -1)
 				{
-					isp = "AS" + data.as_number;
-				}
-				if(dnsleaks.indexOf(isp) == -1)
-				{
-					dnsleaks.push(isp);
+					dnsleaks.push(data.as_number);
 				}
 			}).always(()=>{
 				dnsres++;
 				$("#results-progress").val(dnsreq / dnsres);
 				if(dnsres == dnsreq)
 				{
-					if(dnsleaks.length == 1 && dnsleaks.indexOf("Google Inc.") != -1)
+					if(dnsleaks.length == 1 && (dnsleaks.indexOf("15169") != -1))
 					{
-						results[0].n.push("You're probably using Google's Public DNS server, so I'm not going to count that as DNS leak.");
-						dnsleaks = [];
+						results[0].p += 2;
+						results[0].n.push("Your VPN leaked your DNS servers but you seem to be using a public DNS server.");
 					}
 					else
 					{
-						dnsleaks.forEach(as=>results[0].n.push("DNS servers by " + as + " were leaked."));
+						dnsleaks.forEach(as=>results[0].n.push("DNS servers by AS" + as + " (probably your ISP) were leaked."));
 					}
 					renderResults();
 				}
