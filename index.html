@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Rate My VPN</title>
+	<meta name="title" content="Rate My VPN">
+	<meta name="description" content="RateMyVPN.org is an independent site which gives your VPN a score based on how well it performs in practice.">
+	<meta name="copyright" content="Copyright (c) 2019, Hell.sh">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="Rate My VPN">
+	<meta name="twitter:description" content="RateMyVPN.org is an independent site which gives your VPN a score based on how well it performs in practice.">
+	<meta property="og:site_name" content="RateMyVPN.org">
+	<meta property="og:title" content="Rate My VPN">
+	<meta property="og:description" content="RateMyVPN.org is an independent site which gives your VPN a score based on how well it performs in practice.">
+	<meta property="og:type" content="website">
+	<script>if(location.protocol!="http:")location.protocol="http:"</script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.25/css/uikit.css" integrity="sha256-vE5dQFWvQgK8Qi9GdR71AGM9uyi/pHv3fMgBB2gQSDc=" crossorigin="anonymous">
+</head>
+<body class="uk-margin-left uk-margin-right">
+	<div class="uk-container">
+		<div class="uk-margin-top uk-margin-bottom" id="container">
+			<div id="splash">
+				<h1>Rate My VPN</h1>
+				<p>RateMyVPN.org is an independent site which gives your VPN a score based on how well it performs in practice.</p>
+				<p><a data-target="disconnect-prompt" class="uk-button uk-button-primary">Rate My VPN!</a></p>
+				<div id="noscript" class="uk-alert uk-alert-danger">
+					<p>Rate My VPN requires Javascript to be enabled. Note that a bad actor could still exploit a bad VPN, even if Javascript is disabled. However, without Javascript, our servers would have to handle your data, which you probably don't want either.</p>
+				</div>
+			</div>
+			<div id="disconnect-prompt" class="uk-hidden">
+				<h1>Please disconnect from your VPN.</h1>
+				<p>
+					For the first part of the test, information about your regular connection will be collected, which will make rating your VPN so much easier for you and me.<br>
+					No collected information will leave your browser.
+				</p>
+				<p><button onclick="collectInfo()" class="uk-button uk-button-primary">I'm using my regular internet connection.</button></p>
+			</div>
+			<div id="connect-prompt" class="uk-hidden">
+				<h1>Please connect to your VPN.</h1>
+				<p>
+					Now, I will collect information about your tunneled connection and compare it to the information gathered about your regular collection.<br>
+					All collected information will stay in your browser.
+				</p>
+				<p><button onclick="collectInfo()" class="uk-button uk-button-primary">I'm using a VPN.</button></p>
+			</div>
+			<div id="collecting-info" class="uk-hidden">
+				<h1>Gathering privacy-related information...</h1>
+				<progress id="info-progress" class="uk-progress" value="0" max="1"></progress>
+			</div>
+			<div id="speedtest" class="uk-hidden">
+				<h1>Measuring your internet speed...</h1>
+				<progress id="speedtest-progress" class="uk-progress" value="0" max="1"></progress>
+				<p>Current download speed estimate: <b id="speedtest-speed"></b> Mbit/s</p>
+			</div>
+			<div id="generating-results" class="uk-hidden">
+				<h1>Generating results...</h1>
+				<progress id="results-progress" class="uk-progress" value="0" max="1"></progress>
+			</div>
+			<div id="results" class="uk-hidden">
+				<h1>The Results Are In!</h1>
+				<p>RateMyVPN.org gives your VPN a rating of <b id="results-points"></b> points.</p>
+				<div uk-grid class="uk-child-width-1-2@m uk-grid-match" id="results-grid"></div>
+				<p><button data-target="connect-prompt" class="uk-button uk-button-default">Test another VPN.</button></p>
+			</div>
+			<hr>
+			<p>Copyright (c) 2019, <a href="https://hell.sh" target="_blank">Hell.sh</a>, All rights reserved &middot; <a href="https://hell.sh/privacy" target="_blank">Privacy Policy</a></p>
+		</div>
+	</div>
+	<script src="https://cdn.hell.sh/jquery/3.3.1/core.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>
+	<script src="https://ratemyvpn.org/script.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-rc.25/js/uikit.min.js" integrity="sha256-zH8nrIM2oxqwe9HgYAuKG4S2q16mZuzymyC84SKEdww=" crossorigin="anonymous"></script>
+</body>
+</html>
