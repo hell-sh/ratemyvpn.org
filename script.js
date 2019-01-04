@@ -6,11 +6,7 @@ $("[data-target]").on("click",function()
 var part=0,dns={},ipv4,ipv6,speed={},results={},
 setShown=target=>{
 	$("#container > div").addClass("uk-hidden");
-	var t=$("#"+target).removeClass("uk-hidden");
-	if(t.is("[data-onshow]"))
-	{
-		eval(t.attr("data-onshow"));
-	}
+	$("#"+target).removeClass("uk-hidden");
 },
 setFailed=()=>{
 	if(part == 0)
