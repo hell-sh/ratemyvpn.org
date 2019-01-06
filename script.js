@@ -52,7 +52,7 @@ collectInfo=()=>{
 			{
 				let continueWithSpeedtest=()=>{
 					setShown("speedtest");
-					var startTime;
+					var startTime,finished=false;
 					$("#speedtest-progress").val(0);
 					$.ajax({
 						type: "GET",
@@ -65,23 +65,46 @@ collectInfo=()=>{
 								{
 									startTime=(new Date()).getTime();
 								}
-								speed[part]=((event.loaded*8)/(((new Date()).getTime()-startTime)/1000));
+								var runtime=(((new Date()).getTime()-startTime)/1000);
+								speed[part]=((event.loaded*8)/runtime);
 								$("#speedtest-speed").text((speed[part]/1000000).toFixed(2));
 								$("#speedtest-progress").val(event.loaded/event.total);
+								if(!finished && runtime > 20)
+								{
+									finished=true;
+									xhr.abort();
+									if(part == 0)
+									{
+										part = 1;
+										setShown("connect-prompt");
+									}
+									else
+									{
+										generateResults();
+									}
+								}
 							});
 							return xhr;
 						}
 					}).done(()=>{
-						if(part == 0)
+						if(!finished)
 						{
-							part = 1;
-							setShown("connect-prompt");
+							if(part == 0)
+							{
+								part = 1;
+								setShown("connect-prompt");
+							}
+							else
+							{
+								generateResults();
+							}
 						}
-						else
+					}).fail(()=>{
+						if(!finished)
 						{
-							generateResults();
+							setFailed()
 						}
-					}).fail(setFailed);
+					});
 				},
 				continueWithIpv6=()=>{
 					$("#info-progress").val(101 / 102);
@@ -271,23 +294,23 @@ generateResults=()=>{
 		{
 			dnsreq++;
 			$.ajax("https://apimon.de/geoip/" + i).done(data=>{
-				if(dnsleaks.indexOf(data.as_number) == -1)
+				if(dnsleaks.indexOf(data.as_description) == -1)
 				{
-					dnsleaks.push(data.as_number);
+					dnsleaks.push(data.as_description);
 				}
 			}).always(()=>{
 				dnsres++;
 				$("#results-progress").val(dnsreq / dnsres);
 				if(dnsres == dnsreq)
 				{
-					if(dnsleaks.length == 1 && (dnsleaks.indexOf("15169") != -1))
+					if(dnsleaks.length == 1 && (dnsleaks.indexOf("CLOUDFLARENET - Cloudflare, Inc.") != -1 || dnsleaks.indexOf("GOOGLE - Google LLC") != -1))
 					{
 						results[0].p += 2;
 						results[0].n.push("Your VPN leaked your DNS servers but you seem to be using a public DNS server.");
 					}
 					else
 					{
-						dnsleaks.forEach(as=>results[0].n.push("DNS servers by AS" + as + " (probably your ISP) were leaked."));
+						dnsleaks.forEach(as=>results[0].n.push("DNS servers by " + as + " were leaked."));
 					}
 					renderResults();
 				}
