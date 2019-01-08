@@ -294,16 +294,16 @@ generateResults=()=>{
 		{
 			dnsreq++;
 			$.ajax("https://apimon.de/geoip/" + i).done(data=>{
-				if(dnsleaks.indexOf(data.as_description) == -1)
+				if("as"in data&&"org"in data.as&&dnsleaks.indexOf(data.as.org)==-1)
 				{
-					dnsleaks.push(data.as_description);
+					dnsleaks.push(data.as.org);
 				}
 			}).always(()=>{
 				dnsres++;
 				$("#results-progress").val(dnsreq / dnsres);
 				if(dnsres == dnsreq)
 				{
-					if(dnsleaks.length == 1 && (dnsleaks.indexOf("CLOUDFLARENET - Cloudflare, Inc.") != -1 || dnsleaks.indexOf("GOOGLE - Google LLC") != -1))
+					if(dnsleaks.length == 1 && (dnsleaks.indexOf("Cloudflare, Inc.") != -1 || dnsleaks.indexOf("Google LLC") != -1))
 					{
 						results[0].p += 2;
 						results[0].n.push("Your VPN leaked your DNS servers but you seem to be using a public DNS server.");
