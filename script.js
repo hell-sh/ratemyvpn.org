@@ -133,7 +133,7 @@ collectInfo=()=>{
 								ipv6 = i;
 							}
 							continueWithSpeedtest();
-						}).fail(()=>$.ajax("http://[2a01:4f8:1c1c:a436::1]/").done(i=>{
+						}).fail(()=>$.ajax("http://[2a01:4f8:c010:7a9::1]/").done(i=>{
 							if(part == 1)
 							{
 								if(ipv6 != i)
@@ -193,7 +193,7 @@ collectInfo=()=>{
 							ipv4 = i;
 						}
 						continueWithIpv6();
-					}).fail(()=>$.ajax("http://159.69.210.10/").done(i=>{
+					}).fail(()=>$.ajax("http://116.202.23.174/").done(i=>{
 						if(part == 1)
 						{
 							if(ipv4 != i)
