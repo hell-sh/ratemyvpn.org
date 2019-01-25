@@ -102,9 +102,77 @@ collectInfo=()=>{
 					}).fail(()=>{
 						if(!finished)
 						{
-							setFailed()
+							setFailed();
 						}
 					});
+				},
+				continueWithWebRTC=()=>{
+					if(part == 0)
+					{
+						continueWithSpeedtest();
+						return;
+					}
+					let webrtc_ips = [],
+					RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+					if(!RTCPeerConnection)
+					{
+						let win = document.getElementById("iframe").contentWindow;
+						RTCPeerConnection = win.RTCPeerConnection
+						|| win.mozRTCPeerConnection
+						|| win.webkitRTCPeerConnection;
+						if(!RTCPeerConnection)
+						{
+							results[0].p += 2;
+							results[0].n.push("Your browser doesn't support WebRTC. This is good for your privacy, but may break some websites.");
+							continueWithSpeedtest();
+							return;
+						}
+					}
+					let pc = new RTCPeerConnection({
+						iceServers: [{urls: "stun:stun.services.mozilla.com"}]
+					}, {
+						optional: [{RtpDataChannels: true}]
+					}),
+					handleCandidate=candidate=>{
+						webrtc_ips.push(/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(candidate)[1]);
+					};
+					pc.onicecandidate=ice=>{
+						if(ice.candidate)
+						{
+							handleCandidate(ice.candidate.candidate);
+						}
+					};
+					pc.createDataChannel("");
+					pc.createOffer(function(result)
+					{
+						pc.setLocalDescription(result, ()=>{}, ()=>{});
+					}, ()=>{});
+					setTimeout(()=>{
+						pc.localDescription.sdp.split("\n").forEach(line=>{
+							if(line.substr(0, 12) == "a=candidate:")
+							{
+								handleCandidate(line);
+							}
+						});
+						let webrtc_leak = false;
+						webrtc_ips.forEach(ip=>{
+							if(ipv4[0] == ip)
+							{
+								results[0].n.push("Your IPv4 address was leaked via WebRTC.");
+								webrtc_leak = true;
+							}
+							else if(ipv6[0] == ip)
+							{
+								results[0].n.push("Your IPv6 address was leaked via WebRTC.");
+								webrtc_leak = true;
+							}
+						});
+						if(!webrtc_leak)
+						{
+							results[0].p += 2;
+						}
+						continueWithSpeedtest();
+					}, 1000);
 				},
 				continueWithIpv6=()=>{
 					$("#info-progress").val(101 / 102);
@@ -112,7 +180,7 @@ collectInfo=()=>{
 					{
 						results[0].t -= 2;
 						results[0].n.push("You don't seem to get IPv6 from your ISP, so your VPN wasn't tested in this regard.");
-						continueWithSpeedtest();
+						continueWithWebRTC();
 					}
 					else
 					{
@@ -132,7 +200,7 @@ collectInfo=()=>{
 							{
 								ipv6 = i;
 							}
-							continueWithSpeedtest();
+							continueWithWebRTC();
 						}).fail(()=>$.ajax("http://[2a01:4f8:c010:7a9::1]/").done(i=>{
 							if(part == 1)
 							{
@@ -149,7 +217,7 @@ collectInfo=()=>{
 							{
 								ipv6 = i;
 							}
-							continueWithSpeedtest();
+							continueWithWebRTC();
 						}).fail(()=>{
 							if(part == 1)
 							{
@@ -160,13 +228,13 @@ collectInfo=()=>{
 							{
 								ipv6 = null;
 							}
-							continueWithSpeedtest();
+							continueWithWebRTC();
 						}));
 					}
 				};
 				if(part == 1)
 				{
-					results={0:{p:0,t:7,n:[]}};
+					results={0:{p:0,t:8,n:[]}};
 				}
 				if(part == 1 && ipv4 == null)
 				{
@@ -225,7 +293,7 @@ collectInfo=()=>{
 				}
 			}
 		});
-	}
+}
 },
 generateResults=()=>{
 	setShown("generating-results");
@@ -235,7 +303,7 @@ generateResults=()=>{
 	renderResults=()=>{
 		if(dnsleaks.length == 0)
 		{
-			results[0].p += 3;
+			results[0].p += 2;
 		}
 		$("#results-grid").html("");
 		for(var i in results)
@@ -279,21 +347,21 @@ generateResults=()=>{
 	{
 		speedperc = 100;
 	}
-	speedscore=(Math.ceil((speedperc / 100) * 8) - 5);
+	speedscore=(Math.ceil((speedperc / 100) * 8) - 6);
 	if(speedscore < 0)
 	{
 		speedscore = 0;
 	}
 	results[1] = {
 		p: speedscore,
-		t: 3,
+		t: 2,
 		n: ["Your tunneled speed is ~" + speedperc.toFixed(2) + "% of your normal speed."]
 	};
 	dns[0].forEach(i=>{
 		if(dns[1].indexOf(i) != -1)
 		{
 			dnsreq++;
-			$.ajax("https://apimon.de/geoip/" + i).done(data=>{
+			$.ajax("https://apimon.de/ip/" + i).done(data=>{
 				if("as"in data&&"org"in data.as&&dnsleaks.indexOf(data.as.org)==-1)
 				{
 					dnsleaks.push(data.as.org);
