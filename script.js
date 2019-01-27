@@ -3,6 +3,10 @@ $("[data-target]").on("click",function()
 {
 	setShown($(this).attr("data-target"));
 });
+Array.prototype.random=function()
+{
+	return this[Math.floor((Math.random()*this.length))];
+};
 var part=0,dns={},ipv4,ipv6,speed={},results={},
 setShown=target=>{
 	$("#container > div").addClass("uk-hidden");
@@ -184,7 +188,10 @@ collectInfo=()=>{
 					}
 					else
 					{
-						$.ajax("https://ipv6.apimon.de/").done(i=>{
+						$.ajax({
+							url: "https://ipv6.apimon.de/",
+							timeout: 3000
+						}).done(i=>{
 							if(part == 1)
 							{
 								if(ipv6 != i)
@@ -201,7 +208,10 @@ collectInfo=()=>{
 								ipv6 = i;
 							}
 							continueWithWebRTC();
-						}).fail(()=>$.ajax("http://[2a01:4f8:c010:7a9::1]/").done(i=>{
+						}).fail(()=>$.ajax({
+							url: "http://[" + [ "2a01:4f8:c010:13b9::1", "2a01:4f8:c010:23ff::1" ].random() + "]/",
+							timeout: 3000
+						}).done(i=>{
 							if(part == 1)
 							{
 								if(ipv6 != i)
@@ -244,7 +254,10 @@ collectInfo=()=>{
 				}
 				else
 				{
-					$.ajax("https://ipv4.apimon.de/").done(i=>{
+					$.ajax({
+						url: "https://ipv4.apimon.de/",
+						timeout: 3000
+					}).done(i=>{
 						if(part == 1)
 						{
 							if(ipv4 != i)
@@ -261,7 +274,10 @@ collectInfo=()=>{
 							ipv4 = i;
 						}
 						continueWithIpv6();
-					}).fail(()=>$.ajax("http://116.202.23.174/").done(i=>{
+					}).fail(()=>$.ajax({
+						url: "http://" + [ "159.69.179.159", "159.69.243.254" ] + "/",
+						timeout: 3000
+					}).done(i=>{
 						if(part == 1)
 						{
 							if(ipv4 != i)
