@@ -138,7 +138,11 @@ collectInfo=()=>{
 						optional: [{RtpDataChannels: true}]
 					}),
 					handleCandidate=candidate=>{
-						webrtc_ips.push(/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(candidate)[1]);
+						let match=/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(candidate);
+						if(match&&match.length>1)
+						{
+							webrtc_ips.push(match[1]);
+						}
 					};
 					pc.onicecandidate=ice=>{
 						if(ice.candidate)
@@ -150,22 +154,25 @@ collectInfo=()=>{
 					pc.createOffer(function(result)
 					{
 						pc.setLocalDescription(result, ()=>{}, ()=>{});
-					}, ()=>{});
+					},()=>{});
 					setTimeout(()=>{
-						pc.localDescription.sdp.split("\n").forEach(line=>{
-							if(line.substr(0, 12) == "a=candidate:")
-							{
-								handleCandidate(line);
-							}
-						});
+						if(pc.localDescription&&pc.localDescription.sdp)
+						{
+							pc.localDescription.sdp.split("\n").forEach(line=>{
+								if(line.substr(0, 12) == "a=candidate:")
+								{
+									handleCandidate(line);
+								}
+							});
+						}
 						let webrtc_leak = false;
 						webrtc_ips.forEach(ip=>{
-							if(ipv4[0] == ip)
+							if(ipv4 != null && ipv4[0] == ip)
 							{
 								results[0].n.push("Your IPv4 address was leaked via WebRTC.");
 								webrtc_leak = true;
 							}
-							else if(ipv6[0] == ip)
+							else if(ipv6 != null && ipv6[0] == ip)
 							{
 								results[0].n.push("Your IPv6 address was leaked via WebRTC.");
 								webrtc_leak = true;
